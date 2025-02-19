@@ -1,0 +1,45 @@
+[package]
+name = "dice-rs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+crate-type = [
+	"staticlib", # for hardware
+	"dylib",     # for simulator
+	"rlib",      # to link with bin
+]
+
+[dependencies]
+# playdate = { path = "../playdate/api/playdate", version = "0.2.5" }
+playdate = { git = "https://github.com/kana-sama/playdate.git", branch = "all_my_changes" }
+itertools = { version = "0.14.0", default-features = false, features = ["use_alloc"] }
+rand = { version = "0.9.0", default-features = false, features = ["small_rng"] }
+
+
+# Playdate Package Info
+# doc: https://github.com/boozook/playdate/blob/main/support/build/README.md#metadata
+# official doc: https://sdk.play.date/#pdxinfo
+[package.metadata.playdate]
+name = "Just Dice"
+author = "kana-sama"
+version = "0.1.0"
+bundle-id = "kanasama.playdate.justdicers"
+
+description = "Description for the dice-rs program."
+content-warning = "This game contains mild realistic, violence and bloodshed."
+content-warning2 = "Really scary game."
+
+image-path = "img/system"
+launch-sound-path = "sfx/jump"
+
+# doc: https://github.com/boozook/playdate/blob/main/support/build/README.md#assets
+assets = ["assets/**/*.png", "assets/**/*.gif", "assets/**/*.fnt"]
+
+
+[package.metadata.playdate.options.assets]
+dependencies = false   # allow to build assets for dependencies (default is `true`)
+overwrite = true       # overwrite existing (default is `true`)
+method = "link"        # "copy" or "link"   (default is `link`)
+follow-symlinks = true # follow symlinks    (default is `true`)

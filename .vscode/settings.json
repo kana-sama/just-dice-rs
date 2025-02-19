@@ -1,0 +1,8 @@
+{
+  "editor.tabSize": 4,
+  "triggerTaskOnSave.tasks": {
+    "Build and run Playdate Simulator": [
+      // "src/**/*.rs",
+    ]
+  }
+}

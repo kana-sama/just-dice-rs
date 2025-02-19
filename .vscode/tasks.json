@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build and run Playdate Simulator",
+      "type": "shell",
+      "command": [
+        "cargo playdate package --simulator --device",
+        "&&",
+        "open -g \"$PLAYDATE_SDK_PATH/bin/Playdate Simulator.app\" target/playdate/debug/*.pdx",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent"
+      }
+    }
+  ]
+}
