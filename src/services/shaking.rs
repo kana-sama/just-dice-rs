@@ -1,5 +1,7 @@
 use crate::prelude::*;
 
+use crate::utils::vector_3d::Vector3D;
+
 const HISTORY_SIZE: usize = 10;
 
 const REQUIRED_SHAKE_FORCE: f32 = 0.3;

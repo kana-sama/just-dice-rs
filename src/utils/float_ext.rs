@@ -34,7 +34,7 @@ impl FloatExt for f32 {
 
     fn rezoom_interval(self, from: RangeInclusive<Self>, to: RangeInclusive<Self>) -> Self {
         let progress = ((self - *from.start()) / (*from.end() - *from.start()))
-            .max(0.).min(1.);
+            .max(0.0).min(1.0);
 
         to.start() + (to.end() - to.start()) * progress
     }

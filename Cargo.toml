@@ -35,7 +35,7 @@ image-path = "img/system"
 launch-sound-path = "sfx/jump"
 
 # doc: https://github.com/boozook/playdate/blob/main/support/build/README.md#assets
-assets = ["assets/**/*.png", "assets/**/*.gif", "assets/**/*.fnt"]
+assets = ["assets/**/*.png", "assets/**/*.gif", "assets/**/*.fnt", "assets/**/*.wav"]
 
 
 [package.metadata.playdate.options.assets]

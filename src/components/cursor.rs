@@ -1,5 +1,10 @@
 use crate::prelude::*;
 
+use crate::utils::vector_2d::Vector2D;
+use crate::utils::smooth::Smooth;
+use crate::utils::animated::{Animated, Looping};
+use crate::utils::easing;
+
 const CURSOR_HEIGHT: i32 = 24;
 const CURSOR_OFFSET: i32 = 7;
 
@@ -25,8 +30,8 @@ impl Cursor {
 
         let mut floating = Animated::new(
             easing::IN_OUT_CIRC, 700,
-            -CURSOR_OFFSET as f32 / 2.,
-            CURSOR_OFFSET as f32 / 2.,
+            -CURSOR_OFFSET as f32 / 2.0,
+            CURSOR_OFFSET as f32 / 2.0,
         );
 
         floating.set_looping(Looping::LoopAndReverse);
@@ -74,13 +79,13 @@ impl Cursor {
     fn position_for_target(target: PDRect) -> (Vector2D, BitmapFlip) {
         let mut flip = BitmapFlip::Unflipped;
         let mut position = Vector2D::new(
-            target.x + target.width / 2.,
-            target.y - CURSOR_HEIGHT as f32 / 2. - CURSOR_OFFSET as f32,
+            target.x + target.width / 2.0,
+            target.y - CURSOR_HEIGHT as f32 / 2.0 - CURSOR_OFFSET as f32,
         );
 
         if position.y < CURSOR_HEIGHT as f32 {
             flip = BitmapFlip::FlippedXY;
-            position.y = target.y + target.height + CURSOR_HEIGHT as f32 / 2. + CURSOR_OFFSET as f32;
+            position.y = target.y + target.height + CURSOR_HEIGHT as f32 / 2.0 + CURSOR_OFFSET as f32;
         }
 
         return (position, flip);

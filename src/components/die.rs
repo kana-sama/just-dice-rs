@@ -1,9 +1,17 @@
 use crate::prelude::*;
 
+use crate::services::Random;
+
+use crate::utils::pool::{Pool, Poolable};
+use crate::utils::vector_2d::Vector2D;
+use crate::utils::cached::Cached;
+use crate::utils::animated::{Animated, Looping};
+use crate::utils::easing;
+
 const DIE_SIZE: i32 = 55;
 
 const SELECTION_DURATION: u32 = 300;
-const SELECTION_OFFSET: f32 = 4.;
+const SELECTION_OFFSET: f32 = 4.0;
 
 #[derive(Clone, Copy, PartialEq)]
 struct DieBitmapsCacheKey {
@@ -32,43 +40,21 @@ pub struct Die {
 
     animated_position: Animated<Vector2D>,
     animated_selected: Animated<f32>,
-}
 
-fn prerendered_die(value: u8, angle: f32, draw_mode: BitmapDrawMode) -> DieBitmaps {
-    let table: &_ = unsafe {
-        static mut DIE_BITMAP_TABLE: Option<BitmapTable> = None;
-        DIE_BITMAP_TABLE.get_or_insert_with(|| BitmapTable::load("assets/images/die-55").unwrap())
-    };
-
-    let angle_index = (angle % 180. / 3.) as i32;
-
-
-    let shadow = table.get(6 * 60 + angle_index).unwrap().clone().render(|shadow| {
-        let _ = pd::graphics::set_draw_mode(draw_mode);
-        shadow.draw(0, 0, BitmapFlip::Unflipped);
-    });
-
-    let die_fg: Bitmap = table.get((value as i32 - 1) * 60 + angle_index).unwrap();
-    let die_bg: Bitmap = table.get(7 * 60 + angle_index).unwrap();
-    let die = die_bg.clone().render(|die_bg| {
-        let _ = pd::graphics::set_draw_mode(draw_mode);
-        die_bg.draw(0, 0, BitmapFlip::Unflipped);
-        die_fg.draw(0, 0, BitmapFlip::Unflipped);
-    });
-
-    return DieBitmaps { die, shadow };
+    shake_effect: Pool<ShakeEffect, 3>,
+    roll_effect: RollEffect,
 }
 
 impl Die {
     pub fn new(theme: ThemeRef) -> Die {
         let die_sprite = Sprite::new();
         die_sprite.set_z_index(ZIndex::Die as _);
-        die_sprite.move_to(100., 100.);
+        die_sprite.move_to(100.0, 100.0);
         die_sprite.add();
 
         let shadow_sprite = Sprite::new();
         shadow_sprite.set_z_index(ZIndex::DieShadow as _);
-        shadow_sprite.move_to(105., 105.);
+        shadow_sprite.move_to(105.0, 105.0);
         shadow_sprite.add();
 
         let animated_position = Animated::new(
@@ -84,7 +70,7 @@ impl Die {
             theme,
 
             value: 1,
-            angle: 0.,
+            angle: 0.0,
 
             selected: false,
 
@@ -95,6 +81,9 @@ impl Die {
 
             animated_position,
             animated_selected,
+
+            shake_effect: Pool::new(),
+            roll_effect: RollEffect::new(),
         }
     }
 
@@ -120,14 +109,14 @@ impl Die {
         };
 
         let selected = self.animated_selected.value();
-        let floating = if selected > 0. { animated_floating.value() } else { 0. };
+        let floating = if selected > 0.0 { animated_floating.value() } else { 0.0 };
 
         self.die_sprite.move_to(
             position.x.floor(),
             (position.y - selected + floating).floor(),
         );
 
-        let shadow_is_visible = selected > 0.;
+        let shadow_is_visible = selected > 0.0;
         if shadow_is_visible {
             self.shadow_sprite.move_to(
                 (position.x + selected - floating).floor(),
@@ -180,7 +169,7 @@ impl Die {
         self.animated_selected = Animated::new(
             easing::LINEAR,
             SELECTION_DURATION,
-            0.,
+            0.0,
             SELECTION_OFFSET,
         );
 
@@ -198,7 +187,7 @@ impl Die {
             easing::LINEAR,
             SELECTION_DURATION - self.animated_selected.remaining_duration(),
             self.animated_selected.value(),
-            0.,
+            0.0,
         );
 
         self.animated_selected.start();
@@ -218,7 +207,98 @@ impl Die {
         self.angle
     }
 
-    pub fn set_value(&mut self, value: u8) {
-        self.value = value;
+    pub fn randomize(&mut self, random: &mut Random) {
+        self.value = random.die_value();
+    }
+
+    pub fn play_shake_effect(&mut self, random: &mut Random) {
+        if let Some(effect) = self.shake_effect.get() {
+            effect.play(random);
+        }
+    }
+
+    pub fn play_roll_effect(&mut self, random: &mut Random) {
+        self.roll_effect.play(random);
+    }
+}
+
+
+
+fn prerendered_die(value: u8, angle: f32, draw_mode: BitmapDrawMode) -> DieBitmaps {
+    let table: &_ = unsafe {
+        static mut DIE_BITMAP_TABLE: Option<BitmapTable> = None;
+        DIE_BITMAP_TABLE.get_or_insert_with(|| BitmapTable::load("assets/images/die-55").unwrap())
+    };
+
+    let angle_index = (angle % 180.0 / 3.0) as i32;
+
+
+    let shadow = table.get(6 * 60 + angle_index).unwrap().clone().render(|shadow| {
+        let _ = pd::graphics::set_draw_mode(draw_mode);
+        shadow.draw(0, 0, BitmapFlip::Unflipped);
+    });
+
+    let die_fg: Bitmap = table.get((value as i32 - 1) * 60 + angle_index).unwrap();
+    let die_bg: Bitmap = table.get(7 * 60 + angle_index).unwrap();
+    let die = die_bg.clone().render(|die_bg| {
+        let _ = pd::graphics::set_draw_mode(draw_mode);
+        die_bg.draw(0, 0, BitmapFlip::Unflipped);
+        die_fg.draw(0, 0, BitmapFlip::Unflipped);
+    });
+
+    return DieBitmaps { die, shadow };
+}
+
+struct ShakeEffect(SamplePlayer);
+
+impl ShakeEffect {
+    fn new() -> Self {
+        let shake_effect: &_ = unsafe {
+            static mut SHAKE_EFFECT: Option<Sample> = None;
+            SHAKE_EFFECT.get_or_insert_with(|| pd::sound::sample::Sample::new_from_file("assets/sounds/shake").unwrap())
+        };
+
+        let player = pd::sound::player::SamplePlayer::new().unwrap();
+        player.set_sample(&shake_effect);
+        ShakeEffect(player)
+    }
+
+    fn play(&self, random: &mut Random) {
+        self.0.set_offset(random.in_range(0.0 .. 0.1));
+        self.0.set_volume(random.in_range(0.8 .. 1.0), random.in_range(0.8 .. 1.0));
+        self.0.play(Repeat::Loops(1), random.in_range(0.5 .. 1.5));
+    }
+}
+
+impl Poolable for ShakeEffect {
+    fn new() -> Self {
+        ShakeEffect::new()
+    }
+
+    fn is_free(&self) -> bool {
+        !self.0.is_playing()
+    }
+}
+
+
+struct RollEffect(SamplePlayer);
+
+impl RollEffect {
+    fn new() -> Self {
+        let roll_effect: &_ = unsafe {
+            static mut ROLL_EFFECT: Option<Sample> = None;
+            ROLL_EFFECT.get_or_insert_with(|| pd::sound::sample::Sample::new_from_file("assets/sounds/roll-one").unwrap())
+        };
+
+        let player = pd::sound::player::SamplePlayer::new().unwrap();
+        player.set_sample(&roll_effect);
+        RollEffect(player)
+    }
+
+    fn play(&self, random: &mut Random) {
+        self.0.stop();
+        self.0.set_offset(random.in_range(0.0 .. 0.1));
+        self.0.set_volume(random.in_range(0.8 .. 1.0), random.in_range(0.8 .. 1.0));
+        self.0.play(Repeat::Loops(1), random.in_range(0.9 .. 1.5));
     }
 }

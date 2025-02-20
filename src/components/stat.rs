@@ -47,7 +47,7 @@ impl Stat {
             let total = stat.iter().copied().sum::<usize>();
 
             for (i, count) in stat.iter().copied().enumerate() {
-                let percentage = (count as f32 / total as f32 * 100.) as i32;
+                let percentage = (count as f32 / total as f32 * 100.0) as i32;
                 let percentage = format!("{percentage}%");
 
                 let die: Bitmap = die_table.get(i as i32).unwrap();

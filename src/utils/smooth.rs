@@ -32,7 +32,7 @@ impl<T: Smoothable> Smooth<T> {
     pub fn update(&mut self) {
         let diff = self.target_value - self.current_value;
 
-        if diff.norm() < 1. {
+        if diff.norm() < 1.0 {
             self.current_value = self.target_value;
         } else {
             self.current_value = self.current_value + diff * 0.1;

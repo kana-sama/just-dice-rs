@@ -18,25 +18,15 @@ pub use pd::graphics::text::{TextAlignment, TextAlignmentExt as _};
 pub use pd::graphics::text::{TextWrappingMode, TextWrappingModeExt as _};
 pub use pd::sprite::Sprite;
 pub use pd::system::menu::CheckMenuItem;
+pub use pd::sound::player::{Repeat, SamplePlayer};
+pub use pd::sound::sample::Sample;
 
 pub use pd::sys::ffi::LCDSolidColor;
 pub use pd::sys::ffi::PDRect;
 
-pub use crate::utils::easing;
-
-pub use crate::utils::animated::{Animated, Looping};
-pub use crate::utils::smooth::Smooth;
-pub use crate::utils::cached::Cached;
-pub use crate::utils::toggle::Toggle;
-
-pub use crate::utils::vector_2d::Vector2D;
-pub use crate::utils::vector_3d::Vector3D;
-
 pub use crate::utils::bitmap_ext::BitmapExt as _;
 pub use crate::utils::float_ext::FloatExt as _;
 pub use crate::utils::rect_ext::PDRectExt as _;
-
-pub use crate::utils::bytes_decoder::{BytesDecode, BytesDecoder};
 
 #[repr(i16)]
 pub enum ZIndex {

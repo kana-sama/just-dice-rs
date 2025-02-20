@@ -14,3 +14,5 @@ pub mod bitmap_ext;
 pub mod rect_ext;
 
 pub mod bytes_decoder;
+
+pub mod pool;

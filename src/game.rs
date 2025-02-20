@@ -3,6 +3,9 @@ use crate::prelude::*;
 use crate::components;
 use crate::services;
 
+use crate::utils::bytes_decoder::{BytesDecode, BytesDecoder};
+use crate::utils::vector_2d::Vector2D;
+
 const INITIAL_DICE: usize = 3;
 const MAX_DICE: usize = 9;
 const UNINITIALIZED_CURSOR_INDEX: usize = usize::MAX;
@@ -48,7 +51,7 @@ impl Game {
 
         let dice = (0..INITIAL_DICE).map(|_| {
             let mut die = components::Die::new(theme_manager.theme());
-            die.set_value(random.die_value());
+            die.randomize(&mut random);
             return die;
         }).collect();
 
@@ -105,7 +108,7 @@ impl Game {
         }
 
         if self.shaking.right_now() && self.shaking.in_extremum() {
-            println!("extremum");
+            self.play_shake_effects();
         }
 
         if self.in_selection_mode {
@@ -178,7 +181,7 @@ impl Game {
             self.randomize_next_free_position();
 
             let mut die = components::Die::new(self.theme_manager.theme());
-            die.set_value(self.random.die_value());
+            die.randomize(&mut self.random);
             self.dice.push(die);
 
             self.apply_positions();
@@ -206,8 +209,9 @@ impl Game {
                     self.cursor.immediately_move_to(die.bounds());
                 }
             } else {
-                die.set_value(self.random.die_value());
+                die.randomize(&mut self.random);
                 die.roll_to(position, angle);
+                die.play_roll_effect(&mut self.random);
             }
         }
 
@@ -228,6 +232,15 @@ impl Game {
 
             if (die.position(), die.angle()) != (position, angle) {
                 die.roll_to(position, angle);
+                die.play_roll_effect(&mut self.random);
+            }
+        }
+    }
+
+    pub fn play_shake_effects(&mut self) {
+        for (i, die) in self.dice.iter_mut().enumerate() {
+            if !self.selected_dice[i] {
+                die.play_shake_effect(&mut self.random);
             }
         }
     }

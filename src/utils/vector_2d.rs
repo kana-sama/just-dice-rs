@@ -15,7 +15,7 @@ impl Vector2D {
     }
 
     pub const fn zero() -> Self {
-        Self { x: 0., y: 0. }
+        Self { x: 0., y: 0.0 }
     }
 
     pub fn magnitude(&self) -> f32 {

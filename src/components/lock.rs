@@ -1,5 +1,8 @@
 use crate::prelude::*;
 
+use crate::utils::cached::Cached;
+use crate::utils::toggle::Toggle;
+
 pub struct Lock {
     theme: ThemeRef,
     locked: Toggle,
@@ -29,8 +32,8 @@ impl Lock {
     pub fn update(&mut self) {
         self.locked.update();
 
-        let lock_offset = self.locked.progress().rezoom_interval(0. ..= 0.6, 0. ..= -50.).floor();
-        let shank_offset = self.locked.progress().rezoom_interval(0.7 ..= 1., -3. ..= 0.).floor() as i32;
+        let lock_offset = self.locked.progress().rezoom_interval(0.0 ..= 0.6, 0.0 ..= -50.0).floor();
+        let shank_offset = self.locked.progress().rezoom_interval(0.7 ..= 1., -3.0 ..= 0.0).floor() as i32;
 
         let (ref body, ref shank) = unsafe {
             static mut BODY: Option<(Bitmap, Bitmap)> = None;
@@ -49,6 +52,6 @@ impl Lock {
         });
 
         self.sprite.set_image(bitmap, BitmapFlip::Unflipped);
-        self.sprite.move_to(playdate::display::width() as f32 + lock_offset + 25., playdate::display::height() as f32 - 25.);
+        self.sprite.move_to(playdate::display::width() as f32 + lock_offset + 25., playdate::display::height() as f32 - 25.0);
     }
 }

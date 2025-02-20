@@ -16,7 +16,7 @@ impl Vector3D {
     }
 
     pub fn zero() -> Self {
-        Self { x: 0., y: 0., z: 0. }
+        Self { x: 0., y: 0., z: 0.0 }
     }
 
     pub fn magnitude(&self) -> f32 {
