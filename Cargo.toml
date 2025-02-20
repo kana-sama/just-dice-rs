@@ -34,6 +34,8 @@ content-warning2 = "Really scary game."
 image-path = "img/system"
 launch-sound-path = "sfx/jump"
 
+build-number = 1
+
 # doc: https://github.com/boozook/playdate/blob/main/support/build/README.md#assets
 assets = ["assets/**/*.png", "assets/**/*.gif", "assets/**/*.fnt", "assets/**/*.wav"]
 
